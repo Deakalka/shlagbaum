@@ -595,12 +595,6 @@
 
   function callBarrier(e, side) {
     e.preventDefault();
-    const full = getFullPhone();
-    if (!full) {
-      showToast('⚠ Спочатку введіть свій номер');
-      phoneInput.focus();
-      return;
-    }
     const num = BARRIERS[side];
     const btn = document.getElementById(side === 'left' ? 'btnLeft' : 'btnRight');
     btn.classList.add('flash');
@@ -611,12 +605,6 @@
 
   function callBoth(e) {
     e.preventDefault();
-    const full = getFullPhone();
-    if (!full) {
-      showToast('⚠ Спочатку введіть свій номер');
-      phoneInput.focus();
-      return;
-    }
     showToast('📞 Відкриваємо лівий шлагбаум…');
     setTimeout(() => { window.location.href = 'tel:' + BARRIERS.left; }, 300);
   }
