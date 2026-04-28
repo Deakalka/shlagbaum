@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Шлагбаум">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Шлагбаум</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --border: #1e1e2e;
+      --accent: #e8ff47;
+      --accent2: #47c8ff;
+      --text: #f0f0f0;
+      --muted: #44445a;
+      --green: #47ffb0;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(232,255,71,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232,255,71,0.025) 1px, transparent 1px);
+      background-size: 44px 44px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(ellipse, rgba(232,255,71,0.05) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      padding: 32px 20px 48px;
+      max-width: 400px;
+      margin: 0 auto;
+      width: 100%;
+      animation: fadeIn 0.4s ease both;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── HEADER ── */
+    .header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 40px;
+    }
+
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .logo-sub {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(71,255,176,0.08);
+      border: 1px solid rgba(71,255,176,0.15);
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--green);
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: blink 2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%,100% { opacity:1; }
+      50%      { opacity:0.3; }
+    }
+
+    /* ── SECTION LABEL ── */
+    .label {
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    /* ── BARRIER GRID ── */
+    .barriers {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .barrier-btn {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 30px 16px 22px;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+      transition: border-color 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .barrier-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% -10%, rgba(232,255,71,0.12) 0%, transparent 65%);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .barrier-btn:active {
+      transform: scale(0.94);
+      border-color: var(--accent);
+    }
+
+    .barrier-btn:active::after { opacity: 1; }
+
+    .b-tag {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .b-icon { font-size: 44px; line-height: 1; }
+
+    .b-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 0.1em;
+      color: var(--text);
+    }
+
+    .b-hint {
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    /* ── FLASH FEEDBACK ── */
+    .barrier-btn.flash {
+      border-color: var(--accent) !important;
+      animation: flash 0.5s ease;
+    }
+    @keyframes flash {
+      0%   { box-shadow: 0 0 0 rgba(232,255,71,0); }
+      40%  { box-shadow: 0 0 28px rgba(232,255,71,0.35); }
+      100% { box-shadow: 0 0 0 rgba(232,255,71,0); }
+    }
+
+    /* ── OPEN ALL ── */
+    .open-all {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      background: var(--accent);
+      color: #0a0a0f;
+      border: none;
+      border-radius: 20px;
+      padding: 22px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.1s, box-shadow 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      margin-bottom: 36px;
+    }
+
+    .open-all:active {
+      transform: scale(0.97);
+      box-shadow: 0 0 40px rgba(232,255,71,0.25);
+    }
+
+    /* ── REGISTRATION BLOCK ── */
+    .reg-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .reg-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .reg-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .reg-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: rgba(71,200,255,0.1);
+      border: 1px solid rgba(71,200,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .reg-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 16px;
+      letter-spacing: 0.1em;
+      color: var(--accent2);
+    }
+
+    .reg-subtitle {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      margin-top: 2px;
+    }
+
+    .reg-chevron {
+      font-size: 14px;
+      color: var(--muted);
+      transition: transform 0.25s;
+    }
+    .reg-chevron.open { transform: rotate(180deg); }
+
+    .reg-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .reg-body.open { max-height: 400px; }
+
+    .reg-inner {
+      padding: 0 20px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .reg-desc {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin: 14px 0 16px;
+      letter-spacing: 0.02em;
+    }
+
+    .reg-code {
+      background: #0a0a0f;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      margin-bottom: 14px;
+      letter-spacing: 0.06em;
+      word-break: break-all;
+    }
+
+    .reg-note {
+      font-size: 10px;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    .reg-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .reg-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 8px;
+      color: var(--text);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .reg-btn:active {
+      border-color: var(--accent2);
+      background: rgba(71,200,255,0.06);
+    }
+
+    .reg-btn-icon { font-size: 20px; }
+    .reg-btn-label { font-size: 9px; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; }
+
+    /* ── PHONE NUMBER INPUT ── */
+    .phone-section {
+      margin-bottom: 28px;
+    }
+
+    .phone-input-wrap {
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .phone-input-wrap:focus-within {
+      border-color: var(--accent);
+    }
+
+    .phone-prefix {
+      padding: 16px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      border-right: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    #phoneInput {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 16px;
+      padding: 16px 14px;
+      letter-spacing: 0.06em;
+      width: 100%;
+    }
+
+    #phoneInput::placeholder { color: var(--muted); }
+
+    .phone-hint {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      margin-top: 8px;
+      padding-left: 4px;
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface);
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      white-space: nowrap;
+      z-index: 100;
+      transition: transform 0.3s ease;
+      pointer-events: none;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── FOOTER ── */
+    .footer {
+      margin-top: auto;
+      padding-top: 32px;
+      text-align: center;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <div class="logo">ШЛАГБАУМ</div>
+      <div class="logo-sub">В'їзд · ЖК</div>
+    </div>
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      ONLINE
+    </div>
+  </div>
+
+  <!-- PHONE INPUT -->
+  <div class="phone-section">
+    <div class="label">Ваш номер телефону</div>
+    <div class="phone-input-wrap">
+      <div class="phone-prefix">🇺🇦 +380</div>
+      <input
+        id="phoneInput"
+        type="tel"
+        inputmode="numeric"
+        maxlength="9"
+        placeholder="XX XXX XX XX"
+        autocomplete="tel"
+      >
+    </div>
+    <div class="phone-hint" id="phoneHint">Введіть номер — він підставиться в SMS для реєстрації</div>
+  </div>
+
+  <!-- BARRIER BUTTONS -->
+  <div class="label">Відкрити шлагбаум</div>
+  <div class="barriers">
+    <a id="btnLeft" class="barrier-btn" href="#" onclick="callBarrier(event,'left')">
+      <span class="b-tag">← ЛІВИЙ</span>
+      <span class="b-icon">🚗</span>
+      <span class="b-name">ЛІВИЙ</span>
+      <span class="b-hint">Натисни щоб відкрити</span>
+    </a>
+    <a id="btnRight" class="barrier-btn" href="#" onclick="callBarrier(event,'right')">
+      <span class="b-tag">ПРАВИЙ →</span>
+      <span class="b-icon">🚗</span>
+      <span class="b-name">ПРАВИЙ</span>
+      <span class="b-hint">Натисни щоб відкрити</span>
+    </a>
+  </div>
+
+  <!-- OPEN BOTH -->
+  <a class="open-all" href="#" onclick="callBoth(event)">
+    ⚡ ВІДКРИТИ ОБИДВА
+  </a>
+
+  <!-- REGISTRATION ACCORDION -->
+  <div class="reg-block">
+    <div class="reg-header" onclick="toggleReg()">
+      <div class="reg-header-left">
+        <div class="reg-icon">📲</div>
+        <div>
+          <div class="reg-title">РЕЄСТРАЦІЯ</div>
+          <div class="reg-subtitle">Перший раз? Додай номер в базу</div>
+        </div>
+      </div>
+      <div class="reg-chevron" id="chevron">▼</div>
+    </div>
+    <div class="reg-body" id="regBody">
+      <div class="reg-inner">
+        <div class="reg-desc">
+          Щоб шлагбаум відкривався по дзвінку — твій номер має бути в базі.<br>
+          Відправ одне SMS і все готово.
+        </div>
+        <div class="label">SMS-код для реєстрації</div>
+        <div class="reg-code" id="smsCode">#111180+380-XXXXXXXXX</div>
+        <div class="reg-note" id="regNote">⚠ Введіть свій номер вгорі — він підставиться автоматично</div>
+        <div class="reg-btns">
+          <a id="regLeft" class="reg-btn" href="#" onclick="sendSms(event,'left')">
+            <span class="reg-btn-icon">📩</span>
+            <span class="reg-btn-label">← Лівий</span>
+          </a>
+          <a id="regRight" class="reg-btn" href="#" onclick="sendSms(event,'right')">
+            <span class="reg-btn-icon">📩</span>
+            <span class="reg-btn-label">Правий →</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Дзвінок → шлагбаум відкривається автоматично
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const BARRIERS = {
+    left:  '+380684477691',
+    right: '+380684477892'
+  };
+
+  const phoneInput = document.getElementById('phoneInput');
+  const smsCode    = document.getElementById('smsCode');
+  const regNote    = document.getElementById('regNote');
+  const phoneHint  = document.getElementById('phoneHint');
+
+  function getPhone() {
+    return phoneInput.value.replace(/\D/g, '');
+  }
+
+  function getFullPhone() {
+    const d = getPhone();
+    return d.length === 9 ? '+380' + d : null;
+  }
+
+  phoneInput.addEventListener('input', () => {
+    const full = getFullPhone();
+    if (full) {
+      smsCode.textContent = `#111180${full.replace('+', '+')}`;
+      regNote.textContent = '✅ Номер підставлено — натисни кнопку нижче';
+      regNote.style.color = 'var(--green)';
+      phoneHint.textContent = '✅ Номер готовий до використання';
+      phoneHint.style.color = 'var(--green)';
+    } else {
+      smsCode.textContent = '#111180+380-XXXXXXXXX';
+      regNote.textContent = '⚠ Введіть свій номер вгорі — він підставиться автоматично';
+      regNote.style.color = '';
+      phoneHint.textContent = 'Введіть номер — він підставиться в SMS для реєстрації';
+      phoneHint.style.color = '';
+    }
+  });
+
+  function callBarrier(e, side) {
+    e.preventDefault();
+    const full = getFullPhone();
+    if (!full) {
+      showToast('⚠ Спочатку введіть свій номер');
+      phoneInput.focus();
+      return;
+    }
+    const num = BARRIERS[side];
+    const btn = document.getElementById(side === 'left' ? 'btnLeft' : 'btnRight');
+    btn.classList.add('flash');
+    setTimeout(() => btn.classList.remove('flash'), 600);
+    showToast('📞 Дзвінок на шлагбаум…');
+    setTimeout(() => { window.location.href = 'tel:' + num; }, 300);
+  }
+
+  function callBoth(e) {
+    e.preventDefault();
+    const full = getFullPhone();
+    if (!full) {
+      showToast('⚠ Спочатку введіть свій номер');
+      phoneInput.focus();
+      return;
+    }
+    showToast('📞 Відкриваємо лівий шлагбаум…');
+    setTimeout(() => { window.location.href = 'tel:' + BARRIERS.left; }, 300);
+  }
+
+  function sendSms(e, side) {
+    e.preventDefault();
+    const full = getFullPhone();
+    if (!full) {
+      showToast('⚠ Спочатку введіть свій номер вгорі');
+      phoneInput.focus();
+      return;
+    }
+    const code = `#111180${full}`;
+    const num  = BARRIERS[side];
+    showToast('📩 Відкриваємо SMS…');
+    setTimeout(() => {
+      window.location.href = `sms:${num}?body=${encodeURIComponent(code)}`;
+    }, 300);
+  }
+
+  function toggleReg() {
+    const body    = document.getElementById('regBody');
+    const chevron = document.getElementById('chevron');
+    body.classList.toggle('open');
+    chevron.classList.toggle('open');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), 2500);
+  }
+</script>
+</body>
+</html>
